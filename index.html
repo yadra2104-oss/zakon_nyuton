@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Тест: Фізика • 10 клас</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;700&family=Unbounded:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-gradient: linear-gradient(135deg, #0a0e1a 0%, #1a2342 50%, #0d1225 100%);
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --accent: #3b82f6;
+  --accent-glow: rgba(59, 130, 246, 0.3);
+  --danger: #ef4444;
+  --success: #10b981;
+  --warning: #f59e0b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg-gradient);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+  touch-action: manipulation;
+}
+#canvas-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+.container { width: 100%; max-width: 600px; padding: 20px; margin: auto; display: flex; flex-direction: column; gap: 20px; position: relative; z-index: 1; }
+.glass-panel { background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 16px; padding: 24px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+h1, h2 { font-family: 'Unbounded', sans-serif; font-weight: 600; line-height: 1.3; }
+h1 { font-size: 1.5rem; text-align: center; margin-bottom: 8px; }
+.subtitle { text-align: center; color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 24px; }
+.chip { background: rgba(59, 130, 246, 0.25); border: 1px solid rgba(59, 130, 246, 0.6); color: #ffffff; padding: 8px 14px; border-radius: 20px; font-size: 0.95rem; font-family: 'JetBrains Mono', monospace; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+.chip.subtopic { background: rgba(16, 185, 129, 0.25); border-color: rgba(16, 185, 129, 0.6); }
+.input-group { margin-bottom: 16px; }
+.input-group label { display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px; }
+.input-group input { width: 100%; padding: 12px 16px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-primary); font-family: 'IBM Plex Sans', sans-serif; font-size: 16px; transition: border-color 0.2s; }
+.input-group input:focus { outline: none; border-color: var(--accent); }
+.input-group input.error { border-color: var(--danger); }
+.btn { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 8px; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 1rem; cursor: pointer; transition: transform 0.1s; box-shadow: 0 4px 12px var(--accent-glow); }
+.btn:active { transform: scale(0.98); }
+.btn-secondary { background: rgba(255,255,255,0.1); box-shadow: none; }
+.quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; }
+.progress-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); transition: width 0.3s ease; }
+.timer-container { position: relative; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
+.timer-svg { transform: rotate(-90deg); width: 60px; height: 60px; }
+.timer-circle-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 4; }
+.timer-circle { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 157; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear, stroke 0.3s; }
+.timer-circle.danger { stroke: var(--danger); animation: pulse-red 1s infinite; }
+.timer-text { position: absolute; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.1rem; }
+@keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+.question-text { font-size: 1.1rem; font-weight: 500; margin-bottom: 20px; line-height: 1.5; }
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option { padding: 14px 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
+.option:hover { background: rgba(255,255,255,0.08); }
+.option.selected { background: rgba(59, 130, 246, 0.2); border-color: var(--accent); }
+.option-letter { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
+.result-ring { width: 120px; height: 120px; margin: 0 auto 20px; position: relative; }
+.result-ring svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+.result-ring circle { fill: none; stroke-width: 8; stroke-linecap: round; }
+.result-ring .bg { stroke: rgba(255,255,255,0.1); }
+.result-ring .fg { stroke: var(--success); stroke-dasharray: 339; stroke-dashoffset: 339; transition: stroke-dashoffset 1.5s ease-out; }
+.result-grade { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Unbounded', sans-serif; font-size: 2rem; font-weight: 700; }
+.result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; text-align: center; }
+.stat-box { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; }
+.stat-val { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 700; display: block; }
+.stat-label { font-size: 0.75rem; color: var(--text-secondary); }
+.dots-container { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 16px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.1); }
+.dot.correct { background: var(--success); }
+.dot.wrong { background: var(--danger); }
+.dot.skip { background: var(--warning); }
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
+.toast { background: rgba(239, 68, 68, 0.9); color: white; padding: 10px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; animation: slideIn 0.3s ease; }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.overlay { position: fixed; inset: 0; background: rgba(10, 14, 26, 0.95); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+.overlay.active { display: flex; }
+.violation-counter { position: fixed; top: 20px; left: 20px; background: rgba(245, 158, 11, 0.2); border: 1px solid var(--warning); color: var(--warning); padding: 6px 12px; border-radius: 20px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 600; display: none; z-index: 100; }
+.hidden { display: none !important; }
+@media (pointer: coarse), (max-width: 700px) {
+  .glass-panel { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(26, 35, 66, 0.85); }
+  .container { padding: 16px; }
+  h1 { font-size: 1.3rem; }
+  .option { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="canvas-bg"></canvas>
+
+<div class="toast-container" id="toastContainer"></div>
+<div class="violation-counter" id="violationCounter">⚠ Порушень: <span id="violCount">0</span>/3</div>
+
+<div class="overlay" id="fullscreenOverlay">
+  <h2>Повернутися до тесту</h2>
+  <p style="color: var(--text-secondary); margin: 16px 0;">Тест має проходити у повноекранному режимі.</p>
+  <button class="btn" style="max-width: 300px;" onclick="requestFullscreen()">Продовжити</button>
+</div>
+
+<div class="overlay" id="blockOverlay">
+  <h2 style="color: var(--danger);">Доступ обмежено</h2>
+  <p id="blockReason" style="margin: 16px 0; line-height: 1.5;"></p>
+</div>
+
+<div class="container">
+  <div id="startScreen" class="glass-panel">
+    <h1>Маса. Сила. Закони Ньютона</h1>
+    <p class="subtitle">Фізика • <span id="classDisplay">…</span> клас</p>
+    <div class="chips">
+      <span class="chip"><span id="totalDisplay">…</span> питань</span>
+      <span class="chip"><span id="timeDisplay">…</span> с на питання</span>
+      <span class="chip">11-бальна система</span>
+      <span class="chip subtopic">4 підтеми</span>
+    </div>
+    <div class="input-group">
+      <label>Прізвище та ім'я (обов'язково)</label>
+      <input type="text" id="studentName" placeholder="Наприклад: Шевченко Тарас" autocomplete="off">
+    </div>
+    <div class="input-group">
+      <label>Група / клас</label>
+      <input type="text" id="studentGroup" placeholder="Наприклад: 10-А" autocomplete="off">
+    </div>
+    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.4;">
+      • Тест проходить у повноекранному режимі<br>
+      • Ліміт часу на одне питання є фіксованим<br>
+      • Результат автоматично надсилається вчителю
+    </div>
+    <button class="btn" onclick="initTest()">Розпочати тест</button>
+    <p id="startError" style="color: var(--danger); font-size: 0.85rem; text-align: center; margin-top: 12px; display: none;"></p>
+  </div>
+
+  <div id="quizScreen" class="glass-panel hidden">
+    <div class="quiz-header">
+      <span>Питання <span id="qCurrent">1</span> / <span id="totalDisplay2">…</span></span>
+      <div class="timer-container">
+        <svg class="timer-svg" viewBox="0 0 60 60">
+          <circle class="timer-circle-bg" cx="30" cy="30" r="25"></circle>
+          <circle class="timer-circle" id="timerCircle" cx="30" cy="30" r="25"></circle>
+        </svg>
+        <span class="timer-text" id="timerText">12</span>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div id="subtopicChip" class="chip subtopic" style="display: inline-block; margin-bottom: 12px;"></div>
+    <div class="question-text" id="questionText"></div>
+    <div class="options" id="optionsContainer"></div>
+  </div>
+
+  <div id="resultScreen" class="glass-panel hidden">
+    <h2>Результат тесту</h2>
+    <p class="subtitle">Фізика • <span id="classDisplay2">…</span> клас</p>
+    <div class="result-ring">
+      <svg viewBox="0 0 120 120">
+        <circle class="bg" cx="60" cy="60" r="54"></circle>
+        <circle class="fg" id="resultCircle" cx="60" cy="60" r="54"></circle>
+      </svg>
+      <div class="result-grade" id="resultGrade">0</div>
+    </div>
+    <p style="text-align: center; font-family: 'JetBrains Mono', monospace; margin-bottom: 20px;">оцінка / 11</p>
+    <div class="result-stats">
+      <div class="stat-box"><span class="stat-val" style="color: var(--success);" id="statCorrect">0</span><span class="stat-label">Правильно</span></div>
+      <div class="stat-box"><span class="stat-val" style="color: var(--danger);" id="statWrong">0</span><span class="stat-label">Помилки</span></div>
+      <div class="stat-box"><span class="stat-val" style="color: var(--warning);" id="statViolations">0</span><span class="stat-label">Порушення</span></div>
+    </div>
+    <div class="dots-container" id="dotsContainer"></div>
+    <div style="margin-top: 24px; text-align: center;">
+      <p id="sendStatus" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">Відправка результатів...</p>
+      <button class="btn btn-secondary hidden" id="retrySendBtn" onclick="sendResults()">Надіслати ще раз</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// КОНСТАНТИ
+// ============================================================
+var CLASS = 10;
+var TOTAL = 25;
+var QUESTION_TIME = 12;
+var SECRET = 'fiz11-2026-secret';
+var APPS_SCRIPT_URL = '';
+var TOPIC = 'Маса. Сила. Закони Ньютона';
+var TG_BOT_TOKEN = '8977852457:AAH1jJz54Wb5WFxNn1CrpBlRKbML7Pf_2zs';
+var TG_CHAT_ID = '622617127';
+
+function safeBtoa(str) {
+  try { return btoa(unescape(encodeURIComponent(str))); } 
+  catch(e) { return Math.abs(str.split('').reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36); }
+}
+var TEST_ID = safeBtoa(TOPIC + CLASS).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
+
+// ============================================================
+// ⚡ МИТТЄВЕ ЗАПОВНЕННЯ
+// ============================================================
+document.getElementById('classDisplay').textContent = CLASS;
+document.getElementById('classDisplay2').textContent = CLASS;
+document.getElementById('totalDisplay').textContent = TOTAL;
+document.getElementById('totalDisplay2').textContent = TOTAL;
+document.getElementById('timeDisplay').textContent = QUESTION_TIME;
+
+// ============================================================
+// ПИТАННЯ (25 шт., тільки формули та усний рахунок)
+// ============================================================
+var QUESTIONS_RAW = [
+  { t: "Маса та інертність", q: "Яка одиниця маси є основною в системі СІ?", o: ["Грам", "Кілограм", "Центнер", "Тонна"], a: 1 },
+  { t: "Маса та іnerтність", q: "Яка властивість тіла кількісно характеризується його масою?", o: ["Пружність", "Інертність", "Провідність", "Теплоємність"], a: 1 },
+  { t: "Маса та інертність", q: "Маса 2 т дорівнює...", o: ["20 кг", "200 кг", "2000 кг", "20000 кг"], a: 2 },
+  { t: "Маса та інертність", q: "Чим більша маса тіла, тим...", o: ["більша його інертність", "менша його інертність", "більша його швидкість", "менша його густина"], a: 0 },
+  { t: "Маса та інертність", q: "Яка маса тіла, якщо його вага 100 Н? (g = 10 м/с²)", o: ["1 кг", "10 кг", "100 кг", "1000 кг"], a: 1 },
+  { t: "Маса та інертність", q: "Як зміниться маса цеглини, якщо її розколоти навпіл?", o: ["Не зміниться", "Збільшиться удвічі", "Зменшиться удвічі", "Зникне"], a: 2 },
+  
+  { t: "Сила та додавання сил", q: "Яка одиниця вимірювання сили в системі СІ?", o: ["Джоуль", "Ват", "Ньютон", "Паскаль"], a: 2 },
+  { t: "Сила та додавання сил", q: "Сила є фізичною величиною...", o: ["Скалярною", "Векторною", "Безрозмірною", "Сталою"], a: 1 },
+  { t: "Сила та додавання сил", q: "Дві сили 5 Н і 5 Н діють в одному напрямку. Їх рівнодійна дорівнює...", o: ["10 Н", "0 Н", "25 Н", "5 Н"], a: 0 },
+  { t: "Сила та додавання сил", q: "Дві сили 10 Н і 10 Н діють уздовж однієї прямої у протилежних напрямках. Рівнодійна дорівнює...", o: ["20 Н", "0 Н", "10 Н", "100 Н"], a: 1 },
+  { t: "Сила та додавання сил", q: "Яка сила тяжіння діє на тіло масою 2 кг? (g = 10 м/с²)", o: ["2 Н", "0.2 Н", "20 Н", "200 Н"], a: 2 },
+  { t: "Сила та додавання сил", q: "Сила пружності пружини жорсткістю 100 Н/м при видовженні 0.1 м дорівнює...", o: ["1 Н", "10 Н", "1000 Н", "0.1 Н"], a: 1 },
+  
+  { t: "Закони Ньютона (1-2)", q: "Перший закон Ньютона також називають законом...", o: ["Всесвітнього тяжіння", "Інерції", "Збереження енергії", "Дії та протидії"], a: 1 },
+  { t: "Закони Ньютона (1-2)", q: "Якщо рівнодійна всіх сил, що діють на тіло, дорівнює нулю, то тіло...", o: ["спочиває або рухається рівномірно прямолінійно", "зупиняється миттєво", "рухається з прискоренням", "падає вниз"], a: 0 },
+  { t: "Закони Ньютона (1-2)", q: "Математичний вираз другого закону Ньютона:", o: ["a = F/m", "m = F/a", "F = ma", "F = m/a"], a: 2 },
+  { t: "Закони Ньютона (1-2)", q: "На тіло масою 10 кг діє сила 50 Н. Яке прискорення набуло тіло?", o: ["0.2 м/с²", "5 м/с²", "60 м/с²", "500 м/с²"], a: 1 },
+  { t: "Закони Ньютона (1-2)", q: "Яка сила надасть тілу масою 4 кг прискорення 3 м/с²?", o: ["12 Н", "7 Н", "1.3 Н", "0.75 Н"], a: 0 },
+  { t: "Закони Ньютона (1-2)", q: "Прискорення тіла завжди напрямлене...", o: ["протилежно до швидкості", "туди ж, куди і рівнодійна сила", "вертикально вгору", "довільно"], a: 1 },
+  { t: "Закони Ньютона (1-2)", q: "Якщо масу тіла збільшити в 2 рази, а силу залишити тією ж, прискорення...", o: ["збільшиться в 2 рази", "не зміниться", "зменшиться в 2 рази", "зменшиться в 4 рази"], a: 2 },
+  
+  { t: "Третій закон та вага", q: "Сили взаємодії двох тіл за третім законом Ньютона...", o: ["рівні за модулем і напрямком", "рівні за модулем, протилежні за напрямком", "різні за модулем", "не залежать одне від одного"], a: 1 },
+  { t: "Третій закон та вага", q: "Вага тіла – це сила, з якою тіло...", o: ["притягується до Землі", "діє на опору або підвіс", "штовхає інші тіла", "опирається руху"], a: 1 },
+  { t: "Третій закон та вага", q: "Яка вага тіла масою 5 кг у стані спокою на Землі? (g = 10 м/с²)", o: ["5 Н", "0.5 Н", "50 Н", "500 Н"], a: 2 },
+  { t: "Третій закон та вага", q: "Хлопчик масою 40 кг стоїть у ліфті, що рухається рівномірно вгору. Його вага дорівнює...", o: ["0 Н", "40 Н", "4 Н", "400 Н"], a: 3 },
+  { t: "Третій закон та вага", q: "Якщо на тіло діє сила 20 Н, то тіло діє на джерело цієї сили з силою...", o: ["20 Н", "0 Н", "40 Н", "10 Н"], a: 0 },
+  { t: "Третій закон та вага", q: "У стані невагомості вага тіла дорівнює...", o: ["mg", "0", "m(g+a)", "m(g-a)"], a: 1 }
+];
+
+// ============================================================
+// СТАН
+// ============================================================
+var state = {
+  phase: 'start', studentName: '', studentGroup: '', normalizedKey: '',
+  questions: [], currentQ: 0, answers: [], score: 0, violations: 0,
+  timer: null, timeLeft: QUESTION_TIME, lastViolationTime: 0, isAutoFinished: false
+};
+
+// ============================================================
+// УТИЛІТИ
+// ============================================================
+function normalizeName(name) {
+  return name.toLowerCase().replace(/[^а-яіїєґa-z0-9\s]/g, '').trim().split(/\s+/).sort().join('');
+}
+
+function showToast(msg) {
+  var c = document.getElementById('toastContainer');
+  var t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg; c.appendChild(t);
+  setTimeout(function() { t.remove(); }, 3000);
+}
+
+function shuffle(array) {
+  for (var i = array.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = array[i]; array[i] = array[j]; array[j] = tmp;
+  }
+  return array;
+}
+
+// ============================================================
+// СХОВИЩЕ
+// ============================================================
+var Storage = {
+  check: function(name) {
+    var norm = normalizeName(name);
+    var tid = TEST_ID;
+    try {
+      var reg = JSON.parse(localStorage.getItem('lz_reg_' + tid) || '[]');
+      if (reg.indexOf(norm) !== -1) return this.getDetails(norm);
+      if (localStorage.getItem('lz_usr_' + tid + '_' + norm)) return this.getDetails(norm);
+      if (document.cookie.indexOf('ck_' + tid + '_' + norm + '=1') !== -1) return this.getDetails(norm);
+      if (sessionStorage.getItem('sz_' + tid + '_' + norm)) return this.getDetails(norm);
+    } catch(e) {}
+    return null;
+  },
+  getDetails: function(norm) {
+    try {
+      var data = localStorage.getItem('lz_usr_' + TEST_ID + '_' + norm);
+      if (data) { var p = JSON.parse(data); return { status: p.status, date: p.date, grade: p.grade }; }
+      return { status: 'progress', date: new Date().toLocaleString(), grade: null };
+    } catch(e) { return { status: 'progress', date: 'невідомо', grade: null }; }
+  },
+  save: function(name, group, status, grade) {
+    var norm = normalizeName(name);
+    var tid = TEST_ID;
+    var date = new Date().toLocaleString();
+    var data = { status: status, date: date, grade: grade, group: group };
+    try {
+      var reg = JSON.parse(localStorage.getItem('lz_reg_' + tid) || '[]');
+      if (reg.indexOf(norm) === -1) { reg.push(norm); localStorage.setItem('lz_reg_' + tid, JSON.stringify(reg)); }
+      localStorage.setItem('lz_usr_' + tid + '_' + norm, JSON.stringify(data));
+      document.cookie = 'ck_' + tid + '_' + norm + '=1; max-age=315360000; path=/';
+      sessionStorage.setItem('sz_' + tid + '_' + norm, '1');
+    } catch(e) {}
+  },
+  clearLocal: function(targetName) {
+    var tid = TEST_ID;
+    try {
+      if (targetName === 'all') {
+        Object.keys(localStorage).forEach(function(k) { if(k.indexOf(tid) !== -1) localStorage.removeItem(k); });
+        sessionStorage.clear();
+      } else {
+        var norm = normalizeName(targetName);
+        localStorage.removeItem('lz_usr_' + tid + '_' + norm);
+        var reg = JSON.parse(localStorage.getItem('lz_reg_' + tid) || '[]');
+        localStorage.setItem('lz_reg_' + tid, JSON.stringify(reg.filter(function(n) { return n !== norm; })));
+        sessionStorage.removeItem('sz_' + tid + '_' + norm);
+      }
+    } catch(e) {}
+  }
+};
+
+// ============================================================
+// ХМАРА
+// ============================================================
+function checkCloud() {
+  if (!APPS_SCRIPT_URL) return Promise.resolve({ allowed: true });
+  return new Promise(function(resolve) {
+    var controller = new AbortController();
+    var timeout = setTimeout(function() { controller.abort(); }, 4000);
+    var url = APPS_SCRIPT_URL + '?action=check&secret=' + SECRET + '&testId=' + TEST_ID + '&studentId=' + state.normalizedKey;
+    fetch(url, { signal: controller.signal }).then(function(res) {
+      clearTimeout(timeout);
+      return res.json();
+    }).then(function(data) {
+      if (data.ok && data.exists) resolve({ allowed: false, record: data.record });
+      else resolve({ allowed: true });
+    }).catch(function() {
+      clearTimeout(timeout);
+      resolve({ allowed: true, fallback: true });
+    });
+  });
+}
+
+function upsertCloud(status, grade, score, violations) {
+  if (!APPS_SCRIPT_URL) return;
+  var payload = 'action=upsert&secret=' + SECRET + '&testId=' + TEST_ID + '&studentId=' + state.normalizedKey +
+    '&name=' + encodeURIComponent(state.studentName) + '&group=' + encodeURIComponent(state.studentGroup) +
+    '&class=' + CLASS + '&topic=' + encodeURIComponent(TOPIC) + '&date=' + encodeURIComponent(new Date().toLocaleString()) +
+    '&status=' + status + '&grade=' + (grade !== null ? grade : '') + '&score=' + (score !== null ? score : '') + '&violations=' + violations;
+  fetch(APPS_SCRIPT_URL, { method: 'POST', body: payload }).catch(function() {
+    setTimeout(function() { fetch(APPS_SCRIPT_URL, { method: 'POST', body: payload }).catch(function() {}); }, 2000);
+  });
+}
+
+// ============================================================
+// TELEGRAM
+// ============================================================
+function sendResults() {
+  var statusEl = document.getElementById('sendStatus');
+  var retryBtn = document.getElementById('retrySendBtn');
+  statusEl.textContent = 'Відправка результатів...';
+  retryBtn.classList.add('hidden');
+
+  var correctCount = 0;
+  for (var i = 0; i < state.answers.length; i++) { if (state.answers[i].correct) correctCount++; }
+  var pct = Math.round((correctCount / TOTAL) * 100);
+  var autoMark = state.isAutoFinished ? ' ⚠️ АВТОЗАВЕРШЕННЯ' : '';
+  var details = '';
+  for (var i = 0; i < state.answers.length; i++) {
+    var a = state.answers[i];
+    var icon = a.isSkip ? '⏱' : (a.correct ? '✔' : '✖');
+    details += (i+1) + icon + ' ';
+  }
+
+  var text = '📊 *Новий результат тесту*\n\n' +
+    '👤 *Учень:* ' + state.studentName + '\n' +
+    '🏫 *Група/Клас:* ' + state.studentGroup + ' (' + CLASS + ' клас)\n' +
+    '📅 *Дата:* ' + new Date().toLocaleString() + '\n' +
+    '📚 *Тема:* ' + TOPIC + '\n\n' +
+    '✅ *Правильно:* ' + correctCount + '/' + TOTAL + ' (' + pct + '%)\n' +
+    '🎯 *Оцінка:* ' + state.score + ' / 11\n' +
+    '⚠️ *Порушення:* ' + state.violations + autoMark + '\n\n' +
+    '📝 *Деталі:* ' + details.trim();
+
+  var tgUrl = 'https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage';
+  var payload = { chat_id: TG_CHAT_ID, text: text, parse_mode: 'Markdown' };
+
+  fetch(tgUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    .then(function(res) {
+      if (res.ok) { statusEl.textContent = '✅ Результати успішно надіслано вчителю'; statusEl.style.color = 'var(--success)'; }
+      else throw new Error('TG API error');
+    })
+    .catch(function() {
+      var beaconSent = navigator.sendBeacon(tgUrl, JSON.stringify(payload));
+      if (beaconSent) { statusEl.textContent = '✅ Результати надіслано (фоновий режим)'; statusEl.style.color = 'var(--success)'; }
+      else { statusEl.textContent = '❌ Помилка відправки. Перевірте інтернет.'; statusEl.style.color = 'var(--danger)'; retryBtn.classList.remove('hidden'); }
+    });
+}
+
+// ============================================================
+// АНТИ-ЧИТ
+// ============================================================
+function registerViolation(type) {
+  if (state.phase !== 'quiz') return;
+  var now = Date.now();
+  if (now - state.lastViolationTime < 1500) return;
+  state.lastViolationTime = now;
+  state.violations++;
+  document.getElementById('violCount').textContent = state.violations;
+  document.getElementById('violationCounter').style.display = 'block';
+  showToast('Порушення правил зафіксовано');
+  if (state.violations >= 3) finishTest(true);
+}
+
+function setupAntiCheat() {
+  document.addEventListener('visibilitychange', function() { if (document.hidden && state.phase === 'quiz') registerViolation('tab'); });
+  window.addEventListener('blur', function() { if (state.phase === 'quiz') registerViolation('blur'); });
+  document.addEventListener('fullscreenchange', function() {
+    if (!document.fullscreenElement && state.phase === 'quiz') {
+      document.getElementById('fullscreenOverlay').classList.add('active');
+      registerViolation('fullscreen');
+    }
+  });
+  document.addEventListener('keydown', function(e) {
+    if (state.phase !== 'quiz') return;
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','J','C'].indexOf(e.key.toUpperCase()) !== -1) ||
+        (e.ctrlKey && ['C','V','X','U','S','P','A'].indexOf(e.key.toUpperCase()) !== -1) || e.key === 'PrintScreen') {
+      e.preventDefault(); registerViolation('key');
+      if (e.key === 'PrintScreen') try { navigator.clipboard.writeText(''); } catch(ex) {}
+    }
+  });
+  document.addEventListener('contextmenu', function(e) { e.preventDefault(); registerViolation('click'); });
+  document.addEventListener('copy', function(e) { e.preventDefault(); registerViolation('copy'); });
+  document.addEventListener('cut', function(e) { e.preventDefault(); registerViolation('cut'); });
+  document.addEventListener('paste', function(e) { e.preventDefault(); registerViolation('paste'); });
+  document.addEventListener('dragstart', function(e) { e.preventDefault(); registerViolation('drag'); });
+  window.addEventListener('beforeunload', function(e) { if (state.phase === 'quiz') { e.preventDefault(); e.returnValue = ''; } });
+}
+
+function requestFullscreen() {
+  var el = document.documentElement;
+  try {
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  } catch(e) {}
+  document.getElementById('fullscreenOverlay').classList.remove('active');
+}
+
+// ============================================================
+// ЛОГІКА ТЕСТУ
+// ============================================================
+function initTest() {
+  var nameInput = document.getElementById('studentName');
+  var groupInput = document.getElementById('studentGroup');
+  var name = nameInput.value.trim();
+  var group = groupInput.value.trim();
+
+  if (name.split(/\s+/).length < 2) {
+    nameInput.classList.add('error');
+    document.getElementById('startError').textContent = 'Введіть прізвище та ім\'я (мінімум 2 слова)';
+    document.getElementById('startError').style.display = 'block';
+    return;
+  }
+  if (!group) { groupInput.classList.add('error'); return; }
+
+  state.studentName = name;
+  state.studentGroup = group;
+  state.normalizedKey = normalizeName(name);
+  state.phase = 'quiz';
+
+  checkCloud().then(function(res) {
+    if (!res.allowed && res.record) { blockTest(res.record); return; }
+    if (res.fallback) {
+      var localCheck = Storage.check(name);
+      if (localCheck) { blockTest(localCheck); return; }
+    }
+    Storage.save(name, group, 'progress', null);
+    upsertCloud('progress', null, null, 0);
+    startQuizFlow();
+  });
+}
+
+function blockTest(record) {
+  state.phase = 'blocked';
+  var overlay = document.getElementById('blockOverlay');
+  var reason = document.getElementById('blockReason');
+  overlay.classList.add('active');
+  if (record.status === 'done') {
+    reason.innerHTML = 'Ви вже проходили цей тест.<br>Дата: <b>' + record.date + '</b><br>Оцінка: <b>' + record.grade + '/11</b>';
+  } else {
+    reason.innerHTML = 'Спробу використано, тест не завершено.<br>Дата початку: <b>' + record.date + '</b><br>Зверніться до вчителя для розблокування.';
+  }
+}
+
+function startQuizFlow() {
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('quizScreen').classList.remove('hidden');
+  document.getElementById('violationCounter').style.display = 'block';
+  state.questions = QUESTIONS_RAW.map(function(q, idx) {
+    var options = q.o.map(function(text, i) { return { text: text, isCorrect: i === q.a }; });
+    return { t: q.t, q: q.q, id: idx, shuffledOptions: shuffle(options) };
+  });
+  state.questions = shuffle(state.questions);
+  requestFullscreen();
+  setupAntiCheat();
+  loadQuestion();
+}
+
+function loadQuestion() {
+  if (state.currentQ >= TOTAL) { finishTest(false); return; }
+  var q = state.questions[state.currentQ];
+  document.getElementById('qCurrent').textContent = state.currentQ + 1;
+  document.getElementById('progressFill').style.width = ((state.currentQ) / TOTAL * 100) + '%';
+  document.getElementById('subtopicChip').textContent = q.t;
+  document.getElementById('questionText').textContent = q.q;
+  var container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+  var letters = ['А', 'Б', 'В', 'Г'];
+  q.shuffledOptions.forEach(function(opt, idx) {
+    var div = document.createElement('div');
+    div.className = 'option';
+    div.innerHTML = '<div class="option-letter">' + letters[idx] + '</div><div>' + opt.text + '</div>';
+    div.onclick = function() { selectAnswer(idx, opt.isCorrect); };
+    container.appendChild(div);
+  });
+  startTimer();
+}
+
+function startTimer() {
+  state.timeLeft = QUESTION_TIME;
+  updateTimerUI();
+  if (state.timer) clearInterval(state.timer);
+  state.timer = setInterval(function() {
+    state.timeLeft--;
+    updateTimerUI();
+    if (state.timeLeft <= 0) { clearInterval(state.timer); selectAnswer(-1, false, true); }
+  }, 1000);
+}
+
+function updateTimerUI() {
+  var circle = document.getElementById('timerCircle');
+  var text = document.getElementById('timerText');
+  var maxDash = 157;
+  var offset = maxDash - (state.timeLeft / QUESTION_TIME) * maxDash;
+  circle.style.strokeDashoffset = offset;
+  text.textContent = state.timeLeft;
+  var dangerThreshold = Math.min(5, Math.floor(QUESTION_TIME / 3));
+  if (state.timeLeft <= dangerThreshold) circle.classList.add('danger');
+  else circle.classList.remove('danger');
+}
+
+function selectAnswer(optIdx, isCorrect, isSkip) {
+  isSkip = isSkip || false;
+  clearInterval(state.timer);
+  if (!isSkip) {
+    var options = document.querySelectorAll('.option');
+    if (options[optIdx]) options[optIdx].classList.add('selected');
+  }
+  var q = state.questions[state.currentQ];
+  state.answers.push({ qIndex: q.id, selected: optIdx, correct: isCorrect, isSkip: isSkip });
+  setTimeout(function() { state.currentQ++; loadQuestion(); }, 400);
+}
+
+function finishTest(isAuto) {
+  state.phase = 'result';
+  state.isAutoFinished = isAuto || false;
+  clearInterval(state.timer);
+  document.getElementById('quizScreen').classList.add('hidden');
+  document.getElementById('violationCounter').style.display = 'none';
+  document.getElementById('resultScreen').classList.remove('hidden');
+
+  var correctCount = 0;
+  for (var i = 0; i < state.answers.length; i++) { if (state.answers[i].correct) correctCount++; }
+  if (isAuto || state.violations >= 3) state.score = 0;
+  else {
+    state.score = Math.round((correctCount / TOTAL) * 11);
+    if (correctCount === 0) state.score = 0;
+  }
+
+  document.getElementById('statCorrect').textContent = correctCount;
+  var wrongCount = 0;
+  for (var i = 0; i < state.answers.length; i++) { if (!state.answers[i].correct && !state.answers[i].isSkip) wrongCount++; }
+  document.getElementById('statWrong').textContent = wrongCount;
+  document.getElementById('statViolations').textContent = state.violations;
+  document.getElementById('resultGrade').textContent = state.score;
+
+  var circle = document.getElementById('resultCircle');
+  var maxDash = 339;
+  var offset = maxDash - (state.score / 11) * maxDash;
+  setTimeout(function() { circle.style.strokeDashoffset = offset; }, 100);
+
+  var dotsContainer = document.getElementById('dotsContainer');
+  dotsContainer.innerHTML = '';
+  for (var i = 0; i < state.answers.length; i++) {
+    var a = state.answers[i];
+    var dot = document.createElement('div');
+    dot.className = 'dot ' + (a.isSkip ? 'skip' : (a.correct ? 'correct' : 'wrong'));
+    dotsContainer.appendChild(dot);
+  }
+
+  Storage.save(state.studentName, state.studentGroup, 'done', state.score);
+  upsertCloud('done', state.score, correctCount, state.violations);
+  sendResults();
+}
+
+// ============================================================
+// CANVAS
+// ============================================================
+function initCanvas() {
+  var canvas = document.getElementById('canvas-bg');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var width, height;
+  var particles = [];
+  var isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 700;
+
+  function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
+  window.addEventListener('resize', resize);
+  resize();
+
+  if (!isMobile) {
+    for (var i = 0; i < 40; i++) {
+      particles.push({ x: Math.random() * width, y: Math.random() * height, vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5, r: Math.random() * 2 + 1 });
+    }
+  }
+
+  function animate() {
+    if (isMobile) {
+      ctx.fillStyle = '#0a0e1a'; ctx.fillRect(0, 0, width, height);
+      ctx.beginPath(); ctx.arc(width/2, height/2, 150, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(59, 130, 246, 0.05)'; ctx.stroke();
+      return;
+    }
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = 'rgba(59, 130, 246, 0.3)';
+    particles.forEach(function(p) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > width) p.vx *= -1;
+      if (p.y < 0 || p.y > height) p.vy *= -1;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.strokeStyle = 'rgba(59, 130, 246, 0.05)';
+    for (var i = 0; i < particles.length; i++) {
+      for (var j = i + 1; j < particles.length; j++) {
+        var dx = particles[i].x - particles[j].x;
+        var dy = particles[i].y - particles[j].y;
+        if (Math.sqrt(dx*dx + dy*dy) < 100) {
+          ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+// ============================================================
+// ІНІЦІАЛІЗАЦІЯ
+// ============================================================
+(function() {
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var unlockTarget = params.get('unlock');
+    if (unlockTarget) {
+      Storage.clearLocal(unlockTarget);
+      alert('Локальні дані для "' + unlockTarget + '" очищено.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  } catch(e) {}
+
+  try {
+    var nameInput = document.getElementById('studentName');
+    if (nameInput) {
+      nameInput.addEventListener('blur', function() {
+        if (this.value.trim().split(/\s+/).length >= 2) {
+          var check = Storage.check(this.value);
+          if (check) {
+            this.classList.add('error');
+            document.getElementById('startError').textContent = 'Цей учень вже має активну або завершену спробу.';
+            document.getElementById('startError').style.display = 'block';
+          } else {
+            this.classList.remove('error');
+            document.getElementById('startError').style.display = 'none';
+          }
+        }
+      });
+    }
+  } catch(e) {}
+
+  initCanvas();
+})();
+</script>
+</body>
+</html>
